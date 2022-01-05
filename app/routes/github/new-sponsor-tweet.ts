@@ -39,8 +39,7 @@ export const action: ActionFunction = async ({ request }) => {
   // to their GitHub profile.
   const userMention = twitterUsername ? `@${twitterUsername}` : user.html_url
 
-  const tweetMessage = `Thank you for supporting us, ${user.login} (${userMention})! We are honored to have you as a new ${sponsorship.tier.name}!`
-
+  const tweetMessage = `Thank you for supporting us, ${user.login} (${userMention})!`
   const res = await twitterClient.v2.tweet(tweetMessage)
   const tweetUrl = `https://twitter.com/ApiMocking/status/${res.data.id}`
 
