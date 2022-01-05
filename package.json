@@ -1,0 +1,36 @@
+{
+  "private": true,
+  "name": "msw-webhooks",
+  "description": "",
+  "license": "",
+  "scripts": {
+    "build": "remix build",
+    "dev": "remix dev",
+    "postinstall": "remix setup node"
+  },
+  "dependencies": {
+    "@octokit/rest": "^18.12.0",
+    "@remix-run/react": "^1.1.1",
+    "@remix-run/serve": "^1.1.1",
+    "@remix-run/vercel": "^1.1.1",
+    "@types/twitter": "^1.7.1",
+    "dotenv": "^10.0.0",
+    "outvariant": "^1.2.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "remix": "^1.1.1",
+    "twitter": "^1.7.1",
+    "twitter-api-v2": "^1.8.1"
+  },
+  "devDependencies": {
+    "@remix-run/dev": "^1.1.1",
+    "@types/react": "^17.0.24",
+    "@types/react-dom": "^17.0.9",
+    "request": "^2.88.2",
+    "typescript": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "sideEffects": false
+}
