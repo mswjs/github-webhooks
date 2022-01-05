@@ -43,7 +43,7 @@ export const action: ActionFunction = async ({ request }) => {
   // to their GitHub profile.
   const userMention = twitterUsername ? `@${twitterUsername}` : user.html_url
 
-  const tweetMessage = `Thank you for supporting us, ${user.login} (${userMention})!`
+  const tweetMessage = `Thank you for sponsoring us on GitHub, ${user.login} (${userMention})!`
 
   console.log('creating the main tweet...')
   const tweetResponse = await twitterClient.v2.tweet(tweetMessage)
