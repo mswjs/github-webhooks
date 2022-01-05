@@ -7,13 +7,13 @@ export const loader: LoaderFunction = () => {
 }
 
 export const action: ActionFunction = async ({ request }) => {
-  const { action, sponsorship } = await request.json()
-
-  const githubHookId = request.headers.get('X-GitHub-Hook-ID')
-
-  if (githubHookId !== process.env.GITHUB_WEBHOOK_ID) {
+  if (
+    request.headers.get('X-GitHub-Hook-ID') !== process.env.GITHUB_WEBHOOK_ID
+  ) {
     return new Response('Missing or invalid hook ID.', { status: 403 })
   }
+
+  const { action, sponsorship } = await request.json()
 
   if (action !== 'created') {
     return new Response(`Unknown sponsorship action "${action}", ignoring.`, {
