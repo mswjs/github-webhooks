@@ -1,17 +1,26 @@
-import { ActionFunction } from 'remix'
+import { ActionFunction, LoaderFunction } from 'remix'
 import { githubClient } from '~/clients/github'
 import { twitterClient } from '~/clients/twitter'
 
-export const action: ActionFunction = async ({ request }) => {
-  const { action, sponsorship } = await request.json()
+export const loader: LoaderFunction = () => {
+  return new Response('Only "POST" requests are supported.', { status: 405 })
+}
 
-  // This webhook reacts only to new sponsors.
-  if (action.toLowerCase() !== 'created') {
-    return new Response(null, { status: 405 })
+export const action: ActionFunction = async ({ request }) => {
+  const { hook, sender } = await request.json()
+
+  if (hook.type !== '???') {
+    return new Response(`Unknown hook type "${hook.type}", doing nothing.`, {
+      status: 200,
+    })
+  }
+
+  if (hook.config.secret !== process.env.GITHUB_WEBHOOK_SECRET) {
+    return new Response('Missing or invalid webhook secret.', { status: 403 })
   }
 
   const userResponse = await githubClient.users.getByUsername({
-    username: sponsorship.sponsor.login,
+    username: sender.login,
   })
   const { data: user } = userResponse
 
