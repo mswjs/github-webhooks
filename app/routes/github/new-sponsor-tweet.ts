@@ -7,10 +7,12 @@ export const loader: LoaderFunction = () => {
 }
 
 export const action: ActionFunction = async ({ request }) => {
-  const { action, hook, sponsorship } = await request.json()
+  const { action, sponsorship } = await request.json()
 
-  if (hook.config.secret !== process.env.GITHUB_WEBHOOK_SECRET) {
-    return new Response('Missing or invalid webhook secret.', { status: 403 })
+  const githubHookId = request.headers.get('X-GitHub-Hook-ID')
+
+  if (githubHookId !== process.env.GITHUB_WEBHOOK_ID) {
+    return new Response('Missing or invalid hook ID.', { status: 403 })
   }
 
   if (action !== 'created') {
@@ -19,7 +21,7 @@ export const action: ActionFunction = async ({ request }) => {
     })
   }
 
-  if (sponsorship !== 'public') {
+  if (sponsorship.privacy_level !== 'public') {
     return new Response('Ignoring a private sponsorship.')
   }
 
