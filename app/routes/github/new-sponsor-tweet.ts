@@ -2,6 +2,10 @@ import { ActionFunction, LoaderFunction } from 'remix'
 import { githubClient } from '~/clients/github'
 import { twitterClient } from '~/clients/twitter'
 
+function makeTweetUrl(tweetId: string): string {
+  return `https://twitter.com/ApiMocking/status/${tweetId}`
+}
+
 export const loader: LoaderFunction = () => {
   return new Response('Only "POST" requests are supported.', { status: 405 })
 }
@@ -33,15 +37,40 @@ export const action: ActionFunction = async ({ request }) => {
     username: sponsorship.sponsor.login,
   })
   const { data: user } = userResponse
-  const twitterUsername = user.twitter_username
+  const twitterUsername = user.twitter_username as string | undefined
 
   // Mention the sponsor's Twitter handle if set, otherwise use the link
   // to their GitHub profile.
   const userMention = twitterUsername ? `@${twitterUsername}` : user.html_url
 
   const tweetMessage = `Thank you for supporting us, ${user.login} (${userMention})!`
-  const res = await twitterClient.v2.tweet(tweetMessage)
-  const tweetUrl = `https://twitter.com/ApiMocking/status/${res.data.id}`
+
+  console.log('creating the main tweet...')
+  const tweetResponse = await twitterClient.v2.tweet(tweetMessage)
+  const tweetId = tweetResponse.data.id
+  const tweetUrl = makeTweetUrl(tweetId)
+
+  console.log('successfully created the main tweet:', tweetUrl)
+
+  const replyResponse = await twitterClient.v2.tweet(
+    `\
+Join ${user.login} to support the effort behind Mock Service Worker via GitHub Sponsors:
+
+👉 https://github.com/sponsors/mswjs
+
+Thank you!\
+`,
+    {
+      reply: {
+        in_reply_to_tweet_id: tweetId,
+      },
+    }
+  )
+
+  console.log(
+    'successfully created a sponsorship suggestion reply:',
+    makeTweetUrl(replyResponse.data.id)
+  )
 
   return new Response(tweetUrl, { status: 201 })
 }
