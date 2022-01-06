@@ -33,43 +33,49 @@ export const action: ActionFunction = async ({ request }) => {
     return new Response('Only monthly sponsors get Twitter shoutouts.')
   }
 
-  const userResponse = await githubClient.users.getByUsername({
+  const { data: githubUser } = await githubClient.users.getByUsername({
     username: sponsorship.sponsor.login,
   })
-  const { data: user } = userResponse
-  const twitterHandle = user.twitter_username as string | undefined
-  const userMention = twitterHandle ? `@${twitterHandle}` : user.login
+  const twitterHandle = githubUser.twitter_username as string | undefined
+  const userMention = twitterHandle ? `@${twitterHandle}` : githubUser.login
 
   const tweetMessage = `\
 Thank you for sponsoring us on GitHub, ${userMention}!
-${user.html_url}\
+${githubUser.html_url}\
 `
 
   console.log('creating the main tweet...')
-  const tweetResponse = await twitterClient.v2.tweet(tweetMessage)
-  const tweetId = tweetResponse.data.id
-  const tweetUrl = makeTweetUrl(tweetId)
+
+  // Post a gratitude tweet for the new sponsor.
+  const { data: tweet } = await twitterClient.v2.tweet(tweetMessage)
+  const tweetUrl = makeTweetUrl(tweet.id)
 
   console.log('successfully created the main tweet:', tweetUrl)
 
-  const replyResponse = await twitterClient.v2.tweet(
+  // Reply to the gratitude tweet with the instructions
+  // on how to support Mock Service Worker.
+  const { data: reply } = await twitterClient.v2.tweet(
     `\
-Join ${user.login} to support the effort behind Mock Service Worker via GitHub Sponsors:
+Join ${githubUser.login} to support the effort behind Mock Service Worker via GitHub Sponsors:
 
 👉 https://github.com/sponsors/mswjs
 
 Thank you!`,
     {
       reply: {
-        in_reply_to_tweet_id: tweetId,
+        in_reply_to_tweet_id: tweet.id,
       },
     }
   )
 
   console.log(
     'successfully created a sponsorship suggestion reply:',
-    makeTweetUrl(replyResponse.data.id)
+    makeTweetUrl(reply.id)
   )
+
+  // Like the gratitude tweet.
+  const { data: twitterUser } = await twitterClient.currentUserV2()
+  await twitterClient.v2.like(twitterUser.id, tweet.id)
 
   return new Response(tweetUrl, { status: 201 })
 }
