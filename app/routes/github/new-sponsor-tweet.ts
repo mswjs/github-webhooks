@@ -37,13 +37,13 @@ export const action: ActionFunction = async ({ request }) => {
     username: sponsorship.sponsor.login,
   })
   const { data: user } = userResponse
-  const twitterUsername = user.twitter_username as string | undefined
+  const twitterHandle = user.twitter_username as string | undefined
+  const userMention = twitterHandle ? `@${twitterHandle}` : user.login
 
-  // Mention the sponsor's Twitter handle if set, otherwise use the link
-  // to their GitHub profile.
-  const userMention = twitterUsername ? `@${twitterUsername}` : user.html_url
-
-  const tweetMessage = `Thank you for sponsoring us on GitHub, ${user.login} (${userMention})!`
+  const tweetMessage = `\
+Thank you for sponsoring us on GitHub, ${userMention}!
+${user.html_url}\
+`
 
   console.log('creating the main tweet...')
   const tweetResponse = await twitterClient.v2.tweet(tweetMessage)
@@ -58,8 +58,7 @@ Join ${user.login} to support the effort behind Mock Service Worker via GitHub S
 
 👉 https://github.com/sponsors/mswjs
 
-Thank you!\
-`,
+Thank you!`,
     {
       reply: {
         in_reply_to_tweet_id: tweetId,
