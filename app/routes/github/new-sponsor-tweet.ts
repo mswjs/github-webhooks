@@ -56,7 +56,7 @@ ${githubUser.html_url}\
   // on how to support Mock Service Worker.
   const { data: reply } = await twitterClient.v2.tweet(
     `\
-Join ${githubUser.login} to support the effort behind Mock Service Worker via GitHub Sponsors:
+Join ${userMention} to support the effort behind Mock Service Worker via GitHub Sponsors:
 
 👉 https://github.com/sponsors/mswjs
 
