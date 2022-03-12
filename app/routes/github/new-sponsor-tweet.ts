@@ -46,6 +46,12 @@ export const action: ActionFunction = async ({ request }) => {
     })
   }
 
+  if (!sponsorship) {
+    return new Response(`Received an unknown event "${action}", ignoring.`, {
+      status: 200,
+    })
+  }
+
   if (sponsorship.privacy_level !== 'public') {
     return new Response('Ignoring a private sponsorship.')
   }
