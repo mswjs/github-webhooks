@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { ActionFunction, LoaderFunction } from 'remix'
 import { githubClient } from '~/clients/github'
 import { twitterClient } from '~/clients/twitter'
@@ -11,13 +12,33 @@ export const loader: LoaderFunction = () => {
 }
 
 export const action: ActionFunction = async ({ request }) => {
-  if (
-    request.headers.get('X-GitHub-Hook-ID') !== process.env.GITHUB_WEBHOOK_ID
-  ) {
-    return new Response('Missing or invalid hook ID.', { status: 403 })
+  const json = await request.json()
+
+  const { GITHUB_WEBHOOK_SECRET } = process.env
+
+  if (!GITHUB_WEBHOOK_SECRET) {
+    return new Response('Webhook secret is not configured', { status: 500 })
   }
 
-  const { action, sponsorship } = await request.json()
+  // Validate GitHub's signature (GitHub webhook secret).
+  const signature = Buffer.from(
+    request.headers.get('X-Hub-Signature-256') || '',
+    'utf8'
+  )
+  const hmac = crypto.createHmac('sha256', GITHUB_WEBHOOK_SECRET)
+  const digest = Buffer.from(
+    `sha256=${hmac.update(JSON.stringify(json)).digest('hex')}`,
+    'utf8'
+  )
+
+  if (
+    signature.length !== digest.length ||
+    !crypto.timingSafeEqual(digest, signature)
+  ) {
+    return new Response('Missing or invalid SHA256 signature', { status: 403 })
+  }
+
+  const { action, sponsorship } = json
 
   if (action !== 'created') {
     return new Response(`Unknown sponsorship action "${action}", ignoring.`, {
